@@ -15,21 +15,22 @@ Cardio Trace Platform is a prototype IoT platform demonstrating heart rate monit
 
 The platform consists of multiple service repositories:
 
-- [cardio-trace-iot-platform](https://github.com/KrystianTelizyn/cardio-trace-platform) - main meta repository with system documentation. You are here.
-- [cardio-trace-iot-simulation](https://github.com/KrystianTelizyn/cardio-trace-iot-simulation) – collects and validates data from heart rate sensors (MQTT).
-- `cardio-trace-sensor-hub` – collects and validates data from heart rate sensors (MQTT).
-- `cardio-trace-backend-api` – core domain logic and data management.
-- `cardio-trace-workers` – async processing, alerts, and AI tasks.
-- `cardio-trace-ai-service` – AI insights, analysis, and chat functionality.
-- `cardio-trace-graphql-gateway` – GraphQL API for frontend applications.
-- `cardio-trace-frontend` – web interface for monitoring and visualization.
-- `cardio-trace-auth-service` – Auth0 integration for user authentication.
-- `cardio-trace-deployment` – deployment configurations and scripts.
+- [cardio-trace-iot-platform](https://github.com/KrystianTelizyn/cardio-trace-platform) — meta repository with system documentation (GitHub repo: `cardio-trace-platform`). You are here.
+- [cardio-trace-iot-simulation](https://github.com/KrystianTelizyn/cardio-trace-iot-simulation) — **simulates** MQTT device traffic (publishers) for testing and demos.
+- `cardio-trace-sensor-hub` — **ingests** MQTT measurements: validate, normalize, and forward sensor data into the platform.
+- `cardio-trace-backend-api` — core domain logic and data management.
+- `cardio-trace-workers` — async processing, alerts, and AI tasks.
+- `cardio-trace-ai-service` — AI insights, analysis, and chat functionality.
+- [cardio-trace-gateway](https://github.com/KrystianTelizyn/cardio-trace-gateway) — FastAPI BFF and API edge: Auth0 flows, session cookie, REST proxy to the core backend, GraphQL proxy to Hasura (Hasura metadata/migrations live in this repo).
+- `cardio-trace-frontend` — web interface for monitoring and visualization.
+- `cardio-trace-deployment` — deployment configurations and scripts.
 
 ## Repository Structure
 
+This documentation repo is usually cloned as `cardio-trace-platform` (GitHub default) or a variant such as `cardio-trace-platform-architecture`.
+
 ```bash
-cardio-trace-platform
+cardio-trace-platform   # or your local clone name
 │
 ├─ docs/
 │   ├─ adr/                 # Architecture Decision Records
