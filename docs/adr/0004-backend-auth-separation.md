@@ -1,7 +1,7 @@
 # ADR 0004: Separation of Gateway Auth from Core Backend
 
 ## Status
-Proposed
+Pending
 
 ## Context
 The Cardio Trace **platform** separates **identity and auth orchestration** from **domain data and rules**:
@@ -37,4 +37,5 @@ The Core Backend does **not** own Auth0 redirect/callback or invite issuance. It
 - Reduces risk of accidental exposure of sensitive domain data
 - Simplifies testing and development of gateway vs Core Backend
 - Allows independent scaling or refactoring of gateway auth code without entangling domain models
-- Core Backend (and Hasura, where applicable) continue to rely on **Auth0-issued JWTs** carried as **`Authorization: Bearer`** on requests the gateway forwards—typically validating issuer, audience, and signature as today, without parsing the gateway’s encrypted session cookie
+- Core Backend (and Hasura, where applicable) do **not** receive end-user bearer JWTs from browser traffic; they rely on gateway-mediated request context and an explicit internal trust model
+- Gateway remains the primary enforcement point for edge authentication and role-based route authorization, while domain services retain domain authorization and data ownership rules

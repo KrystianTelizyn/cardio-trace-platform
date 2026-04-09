@@ -1,7 +1,7 @@
 # ADR 0011: Gateway Redirect Safety and Proxy Header Policy
 
 ## Status
-Proposed
+Pending
 
 ## Context
 The gateway is the browser-facing edge for login/callback redirects and proxying to inner REST and GraphQL services (ADR 0008, ADR 0009). This makes two security-sensitive behaviors architectural concerns:
@@ -35,7 +35,8 @@ We define the following gateway security policies.
 
 ### Proxy request/response header policy
 
-- Gateway always injects `Authorization: Bearer <access_token>` to upstream REST and GraphQL calls.
+- Gateway does **not** propagate end-user bearer access tokens to upstream REST and GraphQL calls.
+- Gateway forwards only an allowlisted set of browser headers plus gateway-controlled internal context headers required by the internal trust contract.
 - Browser request headers are forwarded using an allowlist (`accept`, `accept-encoding`, `accept-language`, `content-type`, `user-agent`, `x-request-id`).
 - Hop-by-hop response headers (for example `connection`, `transfer-encoding`, `upgrade`) are not forwarded back to clients.
 

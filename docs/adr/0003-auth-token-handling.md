@@ -26,12 +26,15 @@ After login, tokens must be handled in a way that supports validation on the gat
 ### Session cookie (encrypted)
 
 - The gateway **sets and refreshes** a browser cookie that carries an **encrypted session string** bundling **access token**, **refresh token**, and **id token** (opaque to the client).
-- The cookie is **`HttpOnly`** (and **`Secure`** / **`SameSite`** as appropriate) so **the SPA cannot read JWTs from JavaScript** and **does not send `Authorization: Bearer`** on its own. **That is the role of the gateway**: decrypt the session on the server, validate tokens, and attach Bearer credentials when calling inner services.
+- The cookie is **`HttpOnly`** (and **`Secure`** / **`SameSite`** as appropriate) so **the SPA cannot read JWTs from JavaScript** and **does not send `Authorization: Bearer`** on its own.
 - On each relevant request, the gateway **decrypts the session**, **validates** the token material (e.g. signature, expiry, audience), and **only then** proxies to the inner REST API or Hasura.
 
 ### Outbound authorization to backends
 
-- Proxied requests to the inner API and to Hasura include **`Authorization: Bearer <access_token>`** where the access token is taken from the **decrypted session** and **added by the gateway** to the upstream request. Downstream services remain Bearer-authenticated and **never** receive the encrypted cookie from the browser path.
+- The gateway performs role-based authorization decisions at the edge using JWT claims from the decrypted session (for example roles and tenant-related claims).
+- Proxied requests to inner services **do not** include end-user **`Authorization: Bearer`** access tokens.
+- The browser session cookie remains edge-only and is never forwarded to internal services.
+- Internal services receive only the minimal request context needed to execute domain logic (for example identity, tenant, role, and correlation headers) according to an internal trust contract.
 
 ### CSRF and FastAPI
 
@@ -41,10 +44,11 @@ After login, tokens must be handled in a way that supports validation on the gat
 
 ## Consequences
 
-- Inner backend and Hasura **do not** need to parse the encrypted cookie; they receive **`Authorization: Bearer`** on proxied requests **injected by the gateway** from the decrypted session.
-- Gateway owns **encryption**, **session lifecycle**, **token refresh** (if applicable), and **pre-proxy validation**—centralizing auth logic and reducing duplicate checks in every inner service.
+- Inner backend and Hasura **do not** parse the encrypted browser cookie and **do not** receive end-user bearer tokens from the gateway.
+- Gateway owns **encryption**, **session lifecycle**, **token refresh** (if applicable), and **pre-proxy authentication/authorization** decisions—centralizing edge auth logic.
 - Frontend must **not** bypass the gateway for API/GraphQL that requires auth.
 - **Security reviews** should explicitly cover **CSRF** for cookie-backed sessions and **XSS** (HttpOnly session cookies avoid exposing JWTs to JS; still assess XSS for other authenticated-session abuse).
+- Platform security now depends on an explicit and hardened **gateway-to-internal trust model** (header integrity, anti-spoofing controls, network boundaries, and/or mTLS).
 - SPA behavior depends on gateway contracts for login URLs, invites, and proxy paths.
 
 ## References

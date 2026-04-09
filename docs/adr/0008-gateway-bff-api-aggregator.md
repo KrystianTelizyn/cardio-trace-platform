@@ -1,7 +1,7 @@
 # ADR 0008: Gateway as BFF and API Aggregator
 
 ## Status
-Proposed
+Pending
 
 ## Context
 The Cardio Trace platform is composed of multiple backend capabilities:
@@ -36,7 +36,7 @@ The gateway **does**:
 - **Expose a unified surface** (exact paths are an implementation choice), for example:
   - `/graphql` → proxy to Hasura
   - `/api/*` or `/rest/*` → proxy to Core Backend (DRF)
-- **Decrypt/validate** session and tokens before proxying; **attach** **`Authorization: Bearer <access_token>`** to upstream calls using the access token from the **decrypted session** (the SPA does not send Bearer; see ADR 0003)
+- **Decrypt/validate** session and tokens before proxying; enforce role-based authorization at the edge and forward only minimal trusted request context to upstream services (the SPA does not send Bearer; see ADR 0003)
 
 The gateway **does not**:
 
@@ -47,6 +47,7 @@ The gateway **does not**:
 ## Consequences
 - The SPA integrates primarily with **one origin** for API and auth helpers, reducing client complexity
 - **Authentication** and edge validation are **centralized** (see ADR 0003 for CSRF and cookie considerations)
+- End-user access tokens are kept at the edge and are not propagated to internal APIs
 - Core Backend and Hasura stay **focused** on domain data, permissions, and schema
 - **REST and GraphQL** both sit behind one gateway-shaped interface
 - The gateway is **operationally critical**: availability and safe rollout matter; multiple instances are expected

@@ -20,7 +20,7 @@ We will implement **multi-tenancy using Auth0 Organizations** and embed `org_id`
 - JWT issued by Auth0 includes:
   - `sub` (user ID)
   - `org_id` (organization ID)
-  - Custom claim `https://cadrio.trace.com/roles` (roles in that org)
+  - Custom claim `https://cardio-trace.com/roles` (roles in that org)
 - Backend uses `org_id` from the token to enforce organization-level access control
 - Auth Service does not store tenant info; all tenant data is in JWT
 

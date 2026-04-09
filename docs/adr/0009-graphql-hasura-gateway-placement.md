@@ -1,13 +1,13 @@
 # ADR 0009: GraphQL Engine Placement (Hasura with the Gateway)
 
 ## Status
-Proposed
+Pending
 
 ## Context
 The platform exposes **GraphQL** to the SPA using **Hasura** as the engine. Hasura provides:
 
 - Schema generation from the database
-- Role-based access control using **JWT claims** (aligned with **gateway-injected** `Authorization: Bearer` in [ADR 0003](0003-auth-token-handling.md))
+- Role-based access control aligned with gateway-authenticated internal request context and platform authorization model in [ADR 0003](0003-auth-token-handling.md)
 - Declarative **metadata** and **migrations**
 
 We still need to decide **how Hasura is owned in the architecture**:
@@ -28,7 +28,7 @@ Hasura is an **internal component of the gateway *stack***: it is **versioned an
 - **Repository**: Hasura **metadata, migrations, and related config** live in the **`cardio-trace-gateway` repository**, with a **clear layout** (e.g. `app/` or equivalent for FastAPI vs `hasura/` for engine assets) so concerns do not blur.
 - **Runtime**: Hasura runs as its **own process** (e.g. Docker Compose service) next to the gateway; the FastAPI app **proxies** to it—it does not embed the engine.
 - **Exposure**: The SPA uses **`/graphql`** (or the chosen path) on the **gateway origin only**; Hasura’s HTTP port is **not** exposed to browsers or the public internet in the default deployment model.
-- **Gateway duties** (consistent with ADR 0003 and ADR 0008): authenticate and validate at the edge, then call Hasura with **`Authorization: Bearer <access_token>`** and any other required headers—**added by the gateway** from the decrypted session, not by the browser.
+- **Gateway duties** (consistent with ADR 0003 and ADR 0008): authenticate and validate at the edge, enforce role-based access for routed operations, and call Hasura with only the trusted internal headers required by the internal contract (not end-user bearer tokens from the browser path).
 
 This **does not** move domain business logic into the gateway: Hasura continues to express **data access, permissions, and relationships** via metadata; the Core Backend and database ownership boundaries stay as defined elsewhere.
 

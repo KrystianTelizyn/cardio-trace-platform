@@ -1,7 +1,7 @@
 # ADR 0002: Use of External Identity Provider (Auth0)
 
 ## Status
-Accepted
+Pending
 
 ## Context
 The **Cardio Trace** platform requires user authentication and a management story for two main roles: doctors and patients. Security, reliability, and maintainability are critical, but the project is primarily a backend-focused portfolio piece.
@@ -27,7 +27,7 @@ We will use **Auth0** as the external identity provider. Auth0 provides:
 
 The **Cardio Trace Gateway** (FastAPI) acts as the **thin orchestration layer** at the browser boundary for Auth0: redirecting users to Auth0 login, handling the OAuth2 callback, sending invites via the Auth0 Management API, and assigning roles during invitation. Session and token handling at the edge are specified in [ADR 0003](0003-auth-token-handling.md); separation from domain logic is in [ADR 0004](0004-backend-auth-separation.md).
 
-The **Core Backend** identifies users from **Auth0-issued JWTs** and enforces domain-specific permissions. It does not replace the gateway for login, callback, or invite orchestration.
+The **Core Backend** receives gateway-mediated request context for authenticated browser flows and enforces domain-specific permissions. It does not replace the gateway for login, callback, or invite orchestration.
 
 ## Consequences
 - Reduces implementation complexity and avoids handling sensitive user credentials directly
