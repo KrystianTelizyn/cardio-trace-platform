@@ -29,7 +29,7 @@ The **gateway** provisions the backend user during the **first-login-from-invite
 
 ### Idempotency
 
-`POST /users` is idempotent on `auth0_user_id`: if the user already exists, the endpoint returns the existing record (200) instead of creating a duplicate (201). This handles callback retries and edge cases safely.
+`POST /users` is idempotent for the same user membership tuple (`auth0_user_id`, `auth0_org_id`, `role`): if that membership already exists, the endpoint returns the existing record (200) instead of creating a duplicate (201). This handles callback retries and edge cases safely.
 
 ### Prerequisites
 
@@ -37,7 +37,7 @@ The **gateway** provisions the backend user during the **first-login-from-invite
 
 ### Profile completion
 
-The provisioning step creates a **sparse profile** — only `name` is populated from Auth0. Domain-specific fields (`specialization`, `license_number`, `dob`, `medical_id`, `gender`) start as null and are filled in later through profile update flows (Hasura mutation or dedicated endpoint).
+The provisioning step creates a **sparse profile** — only `name` is populated from Auth0. Domain-specific fields (`specialization`, `license_number`, `dob`, `medical_id`, `gender`) start with model defaults (empty strings or `null`, depending on field type) and are filled in later through profile update flows.
 
 ## Consequences
 - The gateway remains the orchestration point for Auth0 flows, consistent with [ADR 0002](0002-idp-auth0.md) and [ADR 0004](0004-backend-auth-separation.md)
@@ -51,4 +51,3 @@ The provisioning step creates a **sparse profile** — only `name` is populated 
 - [ADR 0004: Separation of Gateway Auth from Core Backend](0004-backend-auth-separation.md)
 - [ADR 0007: Invitation-Based User Onboarding](0007-invitation-onboarding.md)
 - [ADR 0012: Gateway-to-Backend Internal Trust Contract](0012-gateway-backend-trust-contract.md)
-- [Backend API Specification — POST /users](../api/backend-api-spec.md)

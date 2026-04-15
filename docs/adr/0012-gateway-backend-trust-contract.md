@@ -19,9 +19,9 @@ The gateway decrypts the session, validates the token, and attaches these header
 
 | Header         | Value                                     | Source                              |
 |----------------|-------------------------------------------|-------------------------------------|
-| `X-User-Id`    | Local user ID (int)                       | Resolved from `sub` claim           |
-| `X-Tenant-Id`  | Local tenant ID (int)                     | Resolved from `org_id` claim        |
-| `X-Roles`      | Comma-separated role list, e.g. `doctor`  | From `https://cardio-trace.com/roles` claim |
+| `X-User-Id`    | Auth0 user ID (`sub`, e.g. `auth0|...`)   | From `sub` claim                    |
+| `X-Tenant-Id`  | Auth0 organization ID (`org_id`)          | From `org_id` claim                 |
+| `X-Role`       | Single role, e.g. `doctor`                | From `https://cardio-trace.com/roles` claim |
 
 The Core Backend reads these headers and trusts them unconditionally. It does **not** validate JWTs, parse cookies, or call Auth0.
 
