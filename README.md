@@ -23,7 +23,7 @@ The platform consists of multiple service repositories:
 - `cardio-trace-ai-service` — AI insights, analysis, and chat functionality.
 - [cardio-trace-gateway](https://github.com/KrystianTelizyn/cardio-trace-gateway) — FastAPI BFF and API edge: Auth0 flows, session cookie, REST proxy to the core backend, GraphQL proxy to Hasura (Hasura metadata/migrations live in this repo).
 - `cardio-trace-frontend` — web interface for monitoring and visualization.
-- `cardio-trace-deployment` — deployment configurations and scripts.
+- [cardio-trace-deployment](https://github.com/KrystianTelizyn/cardio-trace-deployment) — deployment configurations and scripts.
 
 ## Repository Structure
 
