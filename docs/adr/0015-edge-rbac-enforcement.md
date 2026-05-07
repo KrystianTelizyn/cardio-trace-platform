@@ -6,7 +6,7 @@ Proposed
 ## Context
 [ADR 0006](0006-role-permission-model.md) establishes that roles embedded in Auth0 JWTs are the source of truth and that the gateway "enforces route-level authorization before proxying." [ADR 0008](0008-gateway-bff-api-aggregator.md) positions the gateway as the single edge for authenticated SPA traffic while explicitly deferring domain business rules to downstream services.
 
-Today the gateway validates JWTs and extracts a `TrustContext` (user, tenant, role) that is forwarded to upstream services via trust headers ([ADR 0012](0012-gateway-backend-trust-contract.md)). However, **no route-level authorization check exists** — every authenticated user, regardless of role, can reach any `/api/{path}` or `/graphql` endpoint. Authorization is entirely deferred to DRF domain logic and Hasura row-level permissions.
+Today the gateway validates JWTs and forwards trusted identity and tenancy headers to upstream services ([ADR 0012](0012-gateway-backend-trust-contract.md)). However, **no route-level authorization check exists** — every authenticated user, regardless of role, can reach any `/api/{path}` or `/graphql` endpoint. Authorization is entirely deferred to DRF domain logic and Hasura row-level permissions.
 
 This gap means:
 
@@ -15,13 +15,13 @@ This gap means:
 - There is no centralized audit trail of role-vs-route access attempts
 
 ## Decision
-We add **coarse, allowlist-based RBAC** at the gateway edge, evaluated after JWT validation and before any request is proxied. The enforcement engine is **Casbin** (pycasbin), using a declarative model and policy file.
+We enforce **coarse, allowlist-based RBAC** at the gateway edge, evaluated after authentication and before any request is proxied upstream.
 
 ### Policy model
 
-Each rule maps an **(HTTP method, path pattern)** pair to the roles permitted to access it. Rules are defined in a Casbin CSV policy file shipped with the gateway source. The Casbin model uses `keyMatch2` for path matching, supporting wildcards (e.g. `/patients/*` matches `/patients/123`). **Default-deny** applies when no rule matches a request.
+For each externally exposed endpoint class, the gateway defines which roles are permitted. Requests are allowed only when the authenticated role is explicitly permitted for the requested endpoint.
 
-The policy file is the single source of truth for edge RBAC rules. Adding, removing, or changing rules is a policy file edit — no Python code change is required.
+This is an explicit allowlist model with **default deny**: when no allow rule applies, the request is rejected at the edge.
 
 ### GraphQL policy
 
@@ -46,22 +46,17 @@ Denied requests receive HTTP 403 with a JSON body containing a stable error code
 
 ### Rollout strategy
 
-Enforcement mode is controlled by the `RBAC_ENFORCEMENT_MODE` environment variable:
+Enforcement is active by default for protected traffic: requests with disallowed roles are rejected at the gateway and are not proxied.
 
-- **`audit`** (default) — violations are logged but requests are **not** blocked. Allows validation of the policy against real traffic before enforcement.
-- **`enforce`** — violations return 403 and the request is not proxied.
-
-**Phase 1:** Deploy with `audit`. Monitor logs for false positives. Adjust policy as needed.
-**Phase 2:** Flip to `enforce` once validated. Rollback is a single env var change back to `audit`.
+Rollout proceeds incrementally by validating role-to-endpoint access behavior in lower environments and promoting once access outcomes match expectations.
 
 
 ## Consequences
 - Unauthorized traffic is stopped at the edge, reducing load and attack surface on internal services
-- Audit mode enables safe rollout and ongoing monitoring without blocking traffic
 - Downstream authorization is preserved unchanged; the gateway does not replace domain rules
-- Adding new DRF endpoints requires a corresponding policy rule — this is an intentional forcing function for security review
+- Introducing new exposed endpoints requires an explicit role-access decision — this is an intentional forcing function for security review
 - The trust-header forwarding contract ([ADR 0012](0012-gateway-backend-trust-contract.md)) is unchanged; RBAC runs before headers are injected
-- Policy changes are isolated to a CSV file, reviewable in standard code review without touching Python source
+- RBAC policy changes remain visible in normal architecture and code review workflows
 - The `admin` role is not included in the initial policy; it can be added when the role exists in Auth0
 
 ## References
